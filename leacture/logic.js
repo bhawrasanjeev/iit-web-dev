@@ -267,7 +267,3 @@
 // }, 0);
 
 // console.log(`total price of cart is ${totalPrice}`);
-
-
-
-
