@@ -4,10 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do</title>
+      <style>
+      * {
+        padding: 0px;
+        margin: 0px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      button {
+        border: none;
+        outline: none;
+        padding: 5px 10px;
+        color: white;
+        background-color: black;
+        border-radius: 4px;
+        box-shadow: 2px 2px 2px red;
+        &:hover {
+          box-shadow: 2px 2px 2px lime;
+        }
+      }
+      input {
+        border: none;
+        outline: none;
+        border: 1px dotted;
+        padding: 10px 2px;
+      }
+      .main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+    </style>
 </head>
 <body>
-    
+    <div >
+        <div>
+            <input type="text" id="input"/>
+            <button id="add">add</button>
 
-    
+        </div>
+        <div>
+            <ul id="task"></ul>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById("input");
+        const add = document.getElementById("add");
+        const tasklist = document.getElementById("task");
+        const BASE_URL = "/api/tasks";
+
+        async function fetchTask() {
+            const response = await fetch(BASE_URL);
+            const { data } = await response.json();
+            tasklist.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                tasklist.innerHTML = "<li>No tasks yet.</li>";
+                return;
+            }
+
+            data.forEach((task) => {
+                const li = document.createElement("li");
+                li.className = task.completed ? "completed" : "";
+                li.textContent = task.title;
+
+                const toggle = document.createElement("button");
+                toggle.textContent = task.completed ? "Undo" : "Done";
+                toggle.onclick = () => updateTask(task._id);
+
+                const remove = document.createElement("button");
+                remove.textContent = "Delete";
+                remove.onclick = () => deleteTask(task._id);
+
+                const buttonContainer = document.createElement("span");
+                buttonContainer.appendChild(toggle);
+                buttonContainer.appendChild(remove);
+                li.appendChild(buttonContainer);
+
+                tasklist.appendChild(li);
+            });
+        }
+
+        async function addTask() {
+            const title = input.value.trim();
+            if (!title) {
+                alert("Please enter a task title.");
+                return;
+            }
+
+            await fetch(BASE_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title }),
+            });
+
+            input.value = "";
+            fetchTask();
+        }
+
+        async function deleteTask(id) {
+            await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
+            fetchTask();
+        }
+
+        async function updateTask(id) {
+            await fetch(`${BASE_URL}/${id}`, { method: "PATCH" });
+            fetchTask();
+        }
+
+        add.addEventListener("click", addTask);
+        window.addEventListener("load", fetchTask);
+        
+        
+
+
+    </script>
+
+
 </body>
 </html>
